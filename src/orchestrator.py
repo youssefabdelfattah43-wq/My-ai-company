@@ -51,7 +51,7 @@ def requires_approval(action: str | None) -> bool:
     return action in APPROVAL_ACTIONS
 
 def create_task(business: str, task_type: str, description: str,
-                action: str | None = None) -> dict[str, Any]:
+                action: str | None = None, persist_file: bool = True) -> dict[str, Any]:
     registry = load_registry()
     if business not in registry["businesses"]:
         raise ValueError(f"Unknown business environment: {business}")
@@ -74,9 +74,10 @@ def create_task(business: str, task_type: str, description: str,
         "handoffs": [],
         "result": None,
     }
-    TASKS_DIR.mkdir(parents=True, exist_ok=True)
-    path = TASKS_DIR / f"{task['id']}.json"
-    path.write_text(json.dumps(task, ensure_ascii=False, indent=2), encoding="utf-8")
+    if persist_file:
+        TASKS_DIR.mkdir(parents=True, exist_ok=True)
+        path = TASKS_DIR / f"{task['id']}.json"
+        path.write_text(json.dumps(task, ensure_ascii=False, indent=2), encoding="utf-8")
     return task
 
 def main() -> None:
