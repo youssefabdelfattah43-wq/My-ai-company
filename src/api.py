@@ -42,7 +42,15 @@ def app(environ, start_response):
             if length<=0 or length>MAX_BODY:
                 return response(start_response,"413 Content Too Large",{"error":"Request body missing or too large"})
             data=json.loads(environ["wsgi.input"].read(length))
-            task=create_task(business,data["task_type"],data["description"],data.get("action"))
+            if not isinstance(data, dict):
+                raise ValueError("Request body must be a JSON object")
+            task_type, description = data.get("task_type"), data.get("description")
+            action = data.get("action")
+            if not isinstance(task_type, str) or not isinstance(description, str) or not description.strip():
+                raise ValueError("task_type and a non-empty description are required")
+            if action is not None and not isinstance(action, str):
+                raise ValueError("action must be a string")
+            task=create_task(business,task_type,description.strip(),action,persist_file=False)
             save_task(task)
             return response(start_response,"201 Created",task)
         if len(parts)==3 and parts[2]=="approvals" and method=="GET":
