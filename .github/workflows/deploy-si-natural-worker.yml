@@ -25,8 +25,5 @@ jobs:
           workingDirectory: workers
           command: deploy
           secrets: |
-            API_TOKEN
-            GEMINI_API_KEY
-        env:
-          API_TOKEN: ${{ secrets.SI_NATURAL_API_TOKEN }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+            API_TOKEN=${{ secrets.SI_NATURAL_API_TOKEN }}
+            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
