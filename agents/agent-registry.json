@@ -1,0 +1,79 @@
+{
+  "company": "MY AI COMPANY",
+  "version": "1.0.0",
+  "orchestrator": {
+    "id": "central-orchestrator",
+    "role": "Task coordination, validation, routing, and approval management",
+    "approval_required_for_sensitive_actions": true
+  },
+  "businesses": {
+    "si_natural": {
+      "name": "SI NATURAL",
+      "environment": "ecommerce",
+      "data_namespace": "si_natural",
+      "data_isolation": true
+    },
+    "paymob_crm": {
+      "name": "PAYMOB CRM",
+      "environment": "sales_crm",
+      "data_namespace": "paymob_crm",
+      "data_isolation": true,
+      "internal_company_access": false
+    }
+  },
+  "agents": [
+    {
+      "id": "research",
+      "name": "Research Agent",
+      "department": "Intelligence",
+      "permissions": ["market_research", "competitor_analysis", "lead_research", "trend_analysis"],
+      "can_publish": false,
+      "can_spend_money": false
+    },
+    {
+      "id": "creative",
+      "name": "Creative Agent",
+      "department": "Marketing",
+      "permissions": ["content_creation", "ad_copywriting", "creative_briefs", "design_briefs"],
+      "can_publish": false,
+      "can_spend_money": false
+    },
+    {
+      "id": "media_buyer",
+      "name": "Media Buying Agent",
+      "department": "Advertising",
+      "permissions": ["read_ad_reports", "analyze_roas", "analyze_cpa", "prepare_campaign_drafts"],
+      "can_publish": false,
+      "can_change_budget": false
+    },
+    {
+      "id": "sales_crm",
+      "name": "Sales and CRM Agent",
+      "department": "Sales",
+      "permissions": ["manage_leads", "prepare_replies", "track_followups", "update_sales_pipeline"],
+      "can_send_bulk_messages": false
+    },
+    {
+      "id": "operations",
+      "name": "Business Operations Agent",
+      "department": "Operations",
+      "permissions": ["read_orders", "monitor_inventory", "calculate_profit", "generate_reports"],
+      "can_issue_refunds": false,
+      "can_change_prices": false
+    }
+  ],
+  "approval_policy": {
+    "campaign_publishing": "CEO_APPROVAL",
+    "budget_changes": "CEO_APPROVAL",
+    "price_changes": "CEO_APPROVAL",
+    "bulk_messages": "CEO_APPROVAL",
+    "refunds": "CEO_APPROVAL",
+    "external_account_changes": "CEO_APPROVAL"
+  },
+  "security": {
+    "least_privilege": true,
+    "separate_business_data": true,
+    "secrets_in_source_code": false,
+    "audit_log_required": true
+  }
+}
