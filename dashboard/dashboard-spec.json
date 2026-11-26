@@ -1,0 +1,69 @@
+{
+  "name": "MY AI COMPANY CEO Dashboard",
+  "version": "1.0.0",
+  "layout": "unified",
+  "business_switcher": {
+    "enabled": true,
+    "options": [
+      "si_natural",
+      "paymob_crm"
+    ],
+    "default": "si_natural"
+  },
+  "global_navigation": [
+    "overview",
+    "agents",
+    "tasks",
+    "approvals",
+    "reports",
+    "integrations",
+    "settings"
+  ],
+  "overview_widgets": [
+    "agent_status",
+    "open_tasks",
+    "pending_approvals",
+    "recent_activity"
+  ],
+  "business_views": {
+    "si_natural": [
+      "orders",
+      "revenue",
+      "products",
+      "inventory",
+      "marketing_performance",
+      "customer_support"
+    ],
+    "paymob_crm": [
+      "lead_pipeline",
+      "follow_ups_due",
+      "meetings",
+      "proposals",
+      "sales_performance"
+    ]
+  },
+  "security": {
+    "separate_database_connections": true,
+    "business_context_required_for_every_query": true,
+    "never_aggregate_personal_customer_records_across_businesses": true,
+    "approval_actions": [
+      "campaign_publishing",
+      "budget_changes",
+      "price_changes",
+      "bulk_messages",
+      "refunds",
+      "external_account_changes"
+    ]
+  },
+  "roles": {
+    "ceo": [
+      "read_all_business_views",
+      "approve_sensitive_actions",
+      "manage_integrations"
+    ],
+    "agent": [
+      "access_assigned_tools_and_business_only"
+    ]
+  },
+  "status": "specification_only_not_yet_connected_to_live_data"
+}
