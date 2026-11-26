@@ -1,0 +1,12 @@
+name = "my-ai-company-si-natural"
+main = "src/index.js"
+compatibility_date = "2026-11-26"
+
+[vars]
+BUSINESS = "si_natural"
+GEMINI_MODEL = "gemini-2.5-flash"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "my-ai-company-si-natural"
+database_id = "REPLACE_WITH_CLOUDFLARE_D1_DATABASE_ID"
