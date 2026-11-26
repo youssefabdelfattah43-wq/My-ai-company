@@ -42,3 +42,17 @@ Sensitive actions (campaign publishing, budget changes, price changes, bulk mess
 4. Add n8n workflows and CEO approval dashboard.
 5. Integrate external services one at a time, starting with read-only access.
 6. Deploy to a suitable always-on host after confirming cost and account requirements.
+
+
+## Backend API MVP
+
+A first authenticated API and SQLite persistence layer is available:
+- `src/api.py`: standard-library HTTP API.
+- `src/storage.py`: separate SQLite database files for SI NATURAL and PAYMOB CRM.
+- `docs/API.md`: setup, routes, request examples and production security gaps.
+
+Start locally after setting `MYAI_API_TOKEN` in your environment:
+```bash
+python -m src.api
+```
+The API binds to localhost by default. Do not expose it publicly without HTTPS, stronger user authentication, rate limiting, monitoring and secret management. The backend MVP queues tasks and records approvals; it does not run AI agents or execute external actions yet.
