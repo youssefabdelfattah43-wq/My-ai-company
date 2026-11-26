@@ -1,0 +1,32 @@
+name: Deploy SI NATURAL Worker
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Worker dependencies
+        working-directory: workers
+        run: npm install
+
+      - name: Deploy Worker and upload secrets
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: workers
+          command: deploy
+          secrets: |
+            API_TOKEN
+            GEMINI_API_KEY
+        env:
+          API_TOKEN: ${{ secrets.SI_NATURAL_API_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
