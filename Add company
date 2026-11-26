@@ -1,0 +1,75 @@
+
+# MY AI COMPANY
+## Business Operating System
+
+### Mission
+Build an AI-powered operating system that manages business operations through five specialized AI agents.
+
+### Business Environments
+
+1. SI NATURAL
+   - E-commerce
+   - Shopify
+   - Meta Marketing
+   - Customer Service
+   - Inventory and Orders
+
+2. PAYMOB CRM
+   - Lead Management
+   - POS Sales Pipeline
+   - Prospect Research
+   - Follow-ups
+   - Sales Reporting
+
+### AI Team
+
+1. Research Agent
+   Researches markets, competitors, customers and opportunities.
+
+2. Creative Agent
+   Creates marketing concepts, copywriting and creative briefs.
+
+3. Media Buying Agent
+   Analyzes campaigns, advertising performance and ROAS.
+
+4. Sales & CRM Agent
+   Manages leads, customer conversations and follow-ups.
+
+5. Business Operations Agent
+   Monitors orders, inventory, costs, revenue and reporting.
+
+### AI Orchestrator
+The central coordinator assigns tasks, manages workflows, validates outputs and routes work between agents.
+
+### Human Approval Policy
+
+Human approval is required before:
+- Publishing campaigns
+- Increasing advertising budgets
+- Changing product prices
+- Sending bulk marketing messages
+- Issuing refunds
+- Performing sensitive account operations
+
+### Security Principles
+
+- Separate business environments.
+- Use official APIs and OAuth.
+- Never store credentials in source code.
+- Maintain an audit log.
+- Apply least-privilege permissions.
+- Protect customer information.
+
+### Infrastructure
+
+- n8n: Workflow automation
+- PostgreSQL: Persistent database
+- Redis: Task queue when needed
+- AI Models: Agent intelligence
+- Dashboard: CEO control center
+
+### Operating Principle
+
+Automate repetitive work.
+Escalate important decisions.
+Keep the CEO in control.
