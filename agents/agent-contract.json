@@ -1,0 +1,37 @@
+{
+  "version": "1.0.0",
+  "task_fields": [
+    "id",
+    "business",
+    "task_type",
+    "description",
+    "assigned_agent",
+    "status",
+    "approval_required",
+    "created_at"
+  ],
+  "handoff": {
+    "required_fields": [
+      "from_agent",
+      "to_agent",
+      "summary",
+      "artifacts",
+      "created_at"
+    ],
+    "rules": [
+      "Only registered agents may receive tasks",
+      "Every handoff must preserve business namespace",
+      "Agents may not grant themselves permissions",
+      "Sensitive actions remain blocked until CEO approval"
+    ]
+  },
+  "statuses": [
+    "queued",
+    "in_progress",
+    "awaiting_approval",
+    "approved",
+    "rejected",
+    "completed",
+    "failed"
+  ]
+}
