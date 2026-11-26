@@ -57,6 +57,33 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(status, "200 OK")
         self.assertEqual(storage.list_tasks("paymob_crm"), [])
 
+    def test_create_task_and_sensitive_action_approval(self):
+        status, task = self.request(
+            "/api/si_natural/tasks",
+            method="POST",
+            payload={"task_type": "content_creation", "description": "Draft launch post", "action": "campaign_publishing"},
+        )
+        self.assertEqual(status, "201 Created")
+        self.assertEqual(task["status"], "awaiting_approval")
+        approvals = self.request("/api/si_natural/approvals")[1]["approvals"]
+        self.assertEqual(len(approvals), 1)
+        decision_status, decision = self.request(
+            f"/api/si_natural/approvals/{task['id']}/decision",
+            method="POST",
+            payload={"decision": "approved", "note": "CEO approved"},
+        )
+        self.assertEqual(decision_status, "200 OK")
+        self.assertTrue(decision["updated"])
+
+    def test_invalid_task_payload_returns_400(self):
+        status, data = self.request(
+            "/api/si_natural/tasks",
+            method="POST",
+            payload={"task_type": [], "description": "bad"},
+        )
+        self.assertEqual(status, "400 Bad Request")
+        self.assertIn("error", data)
+
     def test_post_without_body_is_rejected(self):
         status, data = self.request("/api/si_natural/tasks", method="POST")
         self.assertEqual(status, "413 Content Too Large")
