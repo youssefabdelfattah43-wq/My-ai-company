@@ -85,6 +85,18 @@ async function handle(request, env) {
   if (url.pathname === "/health" && request.method === "GET") {
     return json({ status: "ok", service: "my-ai-company-si-natural", mode: "mvp" }, 200, headers);
   }
+  if (url.pathname === "/api/si_natural/agents" && request.method === "GET") {
+    return json({
+      business: BUSINESS,
+      agents: [
+        { id: "research", name: "Research Agent", task_types: ["competitor_analysis", "market_research", "trend_analysis"] },
+        { id: "creative", name: "Creative Agent", task_types: ["content_creation", "ad_copywriting", "creative_brief"] },
+        { id: "media_buyer", name: "Media Buying Agent", task_types: ["campaign_analysis", "read_ad_reports", "analyze_roas"] },
+        { id: "sales_crm", name: "Sales & CRM Agent", task_types: ["manage_leads", "prepare_replies"] },
+        { id: "operations", name: "Business Operations Agent", task_types: ["order_report", "inventory_report", "profit_report"] }
+      ]
+    }, 200, headers);
+  }
   if (!env.API_TOKEN || request.headers.get("Authorization") !== "Bearer " + env.API_TOKEN) {
     return json({ error: "Authentication required" }, 401, headers);
   }
