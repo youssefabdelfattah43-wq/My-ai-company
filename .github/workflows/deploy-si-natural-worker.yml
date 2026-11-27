@@ -57,7 +57,7 @@ jobs:
               -H "Authorization: Bearer $API_TOKEN" \
               -H "Content-Type: application/json" \
               --data "$(jq -n --arg t "$task_type" --arg d "$description" '{task_type:$t,description:$d}')")"
-            echo "$response" | jq -e '.status == "completed" and (.result | type == "string" and length > 0)' >/dev/null
+            echo "$response" | jq -e '.status == "completed" and (.result | type == "string" and length > 0)' >/dev/null || { echo "$response" | jq -r '.error // "Unexpected agent response"' ; return 1; }
             echo "PASS: $task_type"
           }
           run_agent "competitor_analysis" "Create a short competitor research checklist for an Egyptian cosmetics ecommerce brand. Use no invented facts."
