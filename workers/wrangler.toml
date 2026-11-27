@@ -4,7 +4,7 @@ compatibility_date = "2026-11-26"
 
 [vars]
 BUSINESS = "si_natural"
-GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_MODEL = "gemini-3.8-flash"
 
 [[d1_databases]]
 binding = "DB"
