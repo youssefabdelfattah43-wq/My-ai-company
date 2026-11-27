@@ -1,5 +1,7 @@
 const BUSINESS = "si_natural";
-const PUBLIC_TASK_LIMIT = 4;\nconst PUBLIC_TASK_WINDOW_MS = 60 * 60 * 1000;\nconst APPROVAL_ACTIONS = new Set([
+const PUBLIC_TASK_LIMIT = 4;
+const PUBLIC_TASK_WINDOW_MS = 60 * 60 * 1000;
+const APPROVAL_ACTIONS = new Set([
   "campaign_publishing", "budget_changes", "price_changes",
   "bulk_messages", "refunds", "external_account_changes"
 ]);
@@ -59,7 +61,9 @@ async function runGemini(agent, taskType, description, env) {
     "User request and supplied context:",
     description,
     "Return a useful, structured answer in Egyptian Arabic. Do not claim to have performed external actions."
-  ].join("\n\n");
+  ].join("
+
+");
   const endpoint = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent";
   const requestBody = JSON.stringify({
     contents: [{ parts: [{ text: prompt }] }],
@@ -87,7 +91,8 @@ async function runGemini(agent, taskType, description, env) {
   }
   if (lastNetworkError) throw new Error("AI provider request timed out or failed: " + String(lastNetworkError.message || lastNetworkError).slice(0, 250));
   if (!response.ok) { const providerMessage = String(data.error?.message || data.error?.status || "No provider detail").slice(0, 400); throw new Error("AI provider request failed (" + response.status + "): " + providerMessage); }
-  const text = data.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("\n").trim();
+  const text = data.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("
+").trim();
   if (!text) throw new Error("AI provider returned no text");
   return text;
 }
