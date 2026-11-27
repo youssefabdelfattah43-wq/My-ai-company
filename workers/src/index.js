@@ -61,9 +61,7 @@ async function runGemini(agent, taskType, description, env) {
     "User request and supplied context:",
     description,
     "Return a useful, structured answer in Egyptian Arabic. Do not claim to have performed external actions."
-  ].join("
-
-");
+  ].join("\n\n");
   const endpoint = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent";
   const requestBody = JSON.stringify({
     contents: [{ parts: [{ text: prompt }] }],
