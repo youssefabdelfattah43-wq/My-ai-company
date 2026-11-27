@@ -1,5 +1,5 @@
 const BUSINESS = "si_natural";
-const APPROVAL_ACTIONS = new Set([
+const PUBLIC_TASK_LIMIT = 4;\nconst PUBLIC_TASK_WINDOW_MS = 60 * 60 * 1000;\nconst APPROVAL_ACTIONS = new Set([
   "campaign_publishing", "budget_changes", "price_changes",
   "bulk_messages", "refunds", "external_account_changes"
 ]);
@@ -113,6 +113,32 @@ async function handle(request, env) {
         { id: "operations", name: "Business Operations Agent", task_types: ["order_report", "inventory_report", "profit_report"] }
       ]
     }, 200, headers);
+  }
+  if (url.pathname === "/api/public/tasks" && request.method === "POST") {
+    const origin = request.headers.get("Origin") || "";
+    const allowed = (env.ALLOWED_ORIGIN || "").split(",").map(x => x.trim()).filter(Boolean);
+    if (origin && !allowed.includes(origin)) return json({ error: "Origin not allowed" }, 403, headers);
+    let body; try { body = await request.json(); } catch { return json({ error: "Invalid JSON" }, 400, headers); }
+    if (!body || Array.isArray(body) || typeof body.task_type !== "string" || typeof body.description !== "string" || !body.description.trim() || body.description.length > 5000 || !Object.prototype.hasOwnProperty.call(ROUTES,body.task_type)) return json({ error: "Choose a supported task and enter a description (max 5000 characters)." },400,headers);
+    const ip=request.headers.get("CF-Connecting-IP")||"unknown";
+    const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(ip));
+    const ipHash=Array.from(new Uint8Array(digest)).map(x=>x.toString(16).padStart(2,"0")).join("");
+    const since=new Date(Date.now()-PUBLIC_TASK_WINDOW_MS).toISOString();
+    const usage=await env.DB.prepare("SELECT COUNT(*) AS n FROM public_task_usage WHERE ip_hash=? AND created_at>?").bind(ipHash,since).first();
+    if((usage?.n||0)>=PUBLIC_TASK_LIMIT)return json({error:"وصلت للحد المؤقت: 4 مهام في الساعة. جرّب بعد ساعة."},429,headers);
+    const taskId=id(),stamp=now(),agent=ROUTES[body.task_type];
+    await env.DB.prepare("INSERT INTO public_task_usage (id,ip_hash,created_at) VALUES (?,?,?)").bind(id(),ipHash,stamp).run();
+    await env.DB.prepare("INSERT INTO tasks (id,business,task_type,description,assigned_agent,status,approval_required,created_at,updated_at) VALUES (?,?,?,?,?,'in_progress',0,?,?)").bind(taskId,BUSINESS,body.task_type,body.description.trim(),agent,stamp,stamp).run();
+    try {
+      const result=await runGemini(agent,body.task_type,body.description.trim(),env);
+      await env.DB.prepare("UPDATE tasks SET result=?,status='completed',updated_at=? WHERE id=?").bind(result,now(),taskId).run();
+      await writeAudit(env,"public_task_completed",taskId,{assigned_agent:agent});
+      return json({id:taskId,assigned_agent:agent,status:"completed",result,remaining:PUBLIC_TASK_LIMIT-(usage?.n||0)-1},201,headers);
+    } catch(error) {
+      await env.DB.prepare("UPDATE tasks SET status='failed',error=?,updated_at=? WHERE id=?").bind(error.message,now(),taskId).run();
+      await writeAudit(env,"public_task_failed",taskId,{error:error.message});
+      return json({id:taskId,status:"failed",error:error.message},502,headers);
+    }
   }
   if (!env.API_TOKEN || request.headers.get("Authorization") !== "Bearer " + env.API_TOKEN) {
     return json({ error: "Authentication required" }, 401, headers);
