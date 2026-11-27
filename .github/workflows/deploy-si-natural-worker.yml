@@ -39,3 +39,29 @@ jobs:
         env:
           API_TOKEN: ${{ steps.api-token.outputs.token }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Smoke-test all five SI NATURAL agents through the live API
+        shell: bash
+        env:
+          API_TOKEN: ${{ steps.api-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          BASE="https://my-ai-company-si-natural.youssefabdelfattah43.workers.dev"
+          curl --fail --silent --show-error "$BASE/health"
+          echo
+          run_agent() {
+            local task_type="$1"
+            local description="$2"
+            local response
+            response="$(curl --fail --silent --show-error -X POST "$BASE/api/si_natural/tasks" \
+              -H "Authorization: Bearer $API_TOKEN" \
+              -H "Content-Type: application/json" \
+              --data "$(jq -n --arg t "$task_type" --arg d "$description" '{task_type:$t,description:$d}')")"
+            echo "$response" | jq -e '.status == "completed" and (.result | type == "string" and length > 0)' >/dev/null
+            echo "PASS: $task_type"
+          }
+          run_agent "competitor_analysis" "Create a short competitor research checklist for an Egyptian cosmetics ecommerce brand. Use no invented facts."
+          run_agent "content_creation" "Write three Egyptian Arabic content hooks for a strawberry body butter. Do not make medical claims."
+          run_agent "campaign_analysis" "Explain which Meta Ads metrics are needed to evaluate ROAS. Do not invent campaign results."
+          run_agent "manage_leads" "Draft a polite Egyptian Arabic follow-up message for a customer who asked about a product but has not ordered. Do not send it."
+          run_agent "order_report" "List the fields needed for a reliable daily ecommerce order report. Do not invent numbers."
