@@ -60,15 +60,23 @@ async function runGemini(agent, taskType, description, env) {
     description,
     "Return a useful, structured answer in Egyptian Arabic. Do not claim to have performed external actions."
   ].join("\n\n");
-  const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent", {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.5, maxOutputTokens: 1800 }
-    })
+  const endpoint = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent";
+  const requestBody = JSON.stringify({
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: { temperature: 0.5, maxOutputTokens: 1800 }
   });
-  const data = await response.json().catch(() => ({}));
+  let response;
+  let data = {};
+  for (let attempt = 0; attempt < 4; attempt++) {
+    response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
+      body: requestBody
+    });
+    data = await response.json().catch(() => ({}));
+    if (response.ok || ![429, 500, 502, 503, 504].includes(response.status) || attempt === 3) break;
+    await new Promise(resolve => setTimeout(resolve, 1200 * (attempt + 1)));
+  }
   if (!response.ok) { const providerMessage = String(data.error?.message || data.error?.status || "No provider detail").slice(0, 400); throw new Error("AI provider request failed (" + response.status + "): " + providerMessage); }
   const text = data.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("\n").trim();
   if (!text) throw new Error("AI provider returned no text");
