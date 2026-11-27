@@ -16,3 +16,25 @@ document.getElementById("business-switch").addEventListener("change",e=>{state.b
 document.querySelectorAll(".nav-link").forEach(el=>el.addEventListener("click",()=>{state.view=el.dataset.view;render();document.getElementById("sidebar").classList.remove("open")}));
 document.getElementById("mobile-menu").addEventListener("click",()=>document.getElementById("sidebar").classList.toggle("open"));
 render();
+
+// Live, public service checks only. Private business data remains behind API authentication.
+const WORKER_URL = "https://my-ai-company-si-natural.youssefabdelfattah43.workers.dev";
+async function refreshServiceStatus() {
+  const status = document.querySelector(".system-status");
+  const note = document.querySelector(".prototype-note");
+  if (!status) return;
+  try {
+    const [health, agents] = await Promise.all([
+      fetch(WORKER_URL + "/health", { cache: "no-store" }).then(r => { if (!r.ok) throw new Error("health"); return r.json(); }),
+      fetch(WORKER_URL + "/api/si_natural/agents", { cache: "no-store" }).then(r => { if (!r.ok) throw new Error("agents"); return r.json(); })
+    ]);
+    status.innerHTML = '<i style="background:#299b67"></i> Worker online';
+    status.title = health.service + " · " + agents.agents.length + " registered agents";
+    if (note) note.textContent = "Worker online · " + agents.agents.length + " agents registered · Business data not connected";
+  } catch (_) {
+    status.innerHTML = '<i></i> Worker status unavailable';
+    status.title = "Could not verify the live Worker";
+    if (note) note.textContent = "Worker status unavailable · Demo figures are not live data";
+  }
+}
+refreshServiceStatus();
