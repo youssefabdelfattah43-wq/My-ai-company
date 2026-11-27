@@ -53,7 +53,7 @@ jobs:
             local task_type="$1"
             local description="$2"
             local response
-            response="$(curl --fail --silent --show-error -X POST "$BASE/api/si_natural/tasks" \
+            response="$(curl -- --silent --show-error -X POST "$BASE/api/si_natural/tasks" \
               -H "Authorization: Bearer $API_TOKEN" \
               -H "Content-Type: application/json" \
               --data "$(jq -n --arg t "$task_type" --arg d "$description" '{task_type:$t,description:$d}')")"
