@@ -2,6 +2,11 @@ name: Deploy SI NATURAL Worker
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'workers/**'
+      - '.github/workflows/deploy-si-natural-worker.yml'
 
 permissions:
   contents: read
