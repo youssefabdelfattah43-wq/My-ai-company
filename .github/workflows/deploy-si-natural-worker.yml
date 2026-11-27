@@ -32,7 +32,6 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: workers
           wranglerVersion: "4"
-          preCommands: npx wrangler d1 execute my-ai-company-si-natural --remote --file=./schema.sql
           command: deploy
           secrets: |
             API_TOKEN
