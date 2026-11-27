@@ -69,7 +69,7 @@ async function runGemini(agent, taskType, description, env) {
     })
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error("AI provider request failed (" + response.status + ")");
+  if (!response.ok) { const providerMessage = String(data.error?.message || data.error?.status || "No provider detail").slice(0, 400); throw new Error("AI provider request failed (" + response.status + "): " + providerMessage); }
   const text = data.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("\n").trim();
   if (!text) throw new Error("AI provider returned no text");
   return text;
