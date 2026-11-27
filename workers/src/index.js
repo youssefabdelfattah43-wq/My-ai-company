@@ -67,16 +67,25 @@ async function runGemini(agent, taskType, description, env) {
   });
   let response;
   let data = {};
+  let lastNetworkError = null;
   for (let attempt = 0; attempt < 4; attempt++) {
-    response = await fetch(endpoint, {
-      method: "POST",
-      headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
-      body: requestBody
-    });
-    data = await response.json().catch(() => ({}));
-    if (response.ok || ![429, 500, 502, 503, 504].includes(response.status) || attempt === 3) break;
+    try {
+      response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
+        body: requestBody,
+        signal: AbortSignal.timeout(25000)
+      });
+      data = await response.json().catch(() => ({}));
+      lastNetworkError = null;
+      if (response.ok || ![429, 500, 502, 503, 504].includes(response.status) || attempt === 3) break;
+    } catch (error) {
+      lastNetworkError = error;
+      if (attempt === 3) throw new Error("AI provider request timed out or failed: " + String(error.message || error).slice(0, 250));
+    }
     await new Promise(resolve => setTimeout(resolve, 1200 * (attempt + 1)));
   }
+  if (lastNetworkError) throw new Error("AI provider request timed out or failed: " + String(lastNetworkError.message || lastNetworkError).slice(0, 250));
   if (!response.ok) { const providerMessage = String(data.error?.message || data.error?.status || "No provider detail").slice(0, 400); throw new Error("AI provider request failed (" + response.status + "): " + providerMessage); }
   const text = data.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("\n").trim();
   if (!text) throw new Error("AI provider returned no text");
