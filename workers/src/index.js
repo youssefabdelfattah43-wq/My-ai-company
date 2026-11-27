@@ -97,7 +97,7 @@ async function writeAudit(env, type, taskId, details) {
   await env.DB.prepare("INSERT INTO audit_events (id,event_type,task_id,details,created_at) VALUES (?,?,?,?,?)")
     .bind(id(), type, taskId, JSON.stringify(details), now()).run();
 }
-async function handle(request, env) {
+async function handle(request, env, ctx) {
   const headers = corsHeaders(request, env);
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers });
   const url = new URL(request.url);
@@ -116,6 +116,12 @@ async function handle(request, env) {
       ]
     }, 200, headers);
   }
+  const publicTaskMatch = url.pathname.match(/^\/api\/public\/tasks\/([0-9a-f-]+)$/i);
+  if (publicTaskMatch && request.method === "GET") {
+    const task = await env.DB.prepare("SELECT id,status,result,error,assigned_agent,created_at,updated_at FROM tasks WHERE id=? AND business=?").bind(publicTaskMatch[1], BUSINESS).first();
+    if (!task) return json({ error: "Task not found" }, 404, headers);
+    return json(task, 200, headers);
+  }
   if (url.pathname === "/api/public/tasks" && request.method === "POST") {
     const origin = request.headers.get("Origin") || "";
     const allowed = (env.ALLOWED_ORIGIN || "").split(",").map(x => x.trim()).filter(Boolean);
@@ -131,16 +137,18 @@ async function handle(request, env) {
     const taskId=id(),stamp=now(),agent=ROUTES[body.task_type];
     await env.DB.prepare("INSERT INTO public_task_usage (id,ip_hash,created_at) VALUES (?,?,?)").bind(id(),ipHash,stamp).run();
     await env.DB.prepare("INSERT INTO tasks (id,business,task_type,description,assigned_agent,status,approval_required,created_at,updated_at) VALUES (?,?,?,?,?,'in_progress',0,?,?)").bind(taskId,BUSINESS,body.task_type,body.description.trim(),agent,stamp,stamp).run();
-    try {
-      const result=await runGemini(agent,body.task_type,body.description.trim(),env);
-      await env.DB.prepare("UPDATE tasks SET result=?,status='completed',updated_at=? WHERE id=?").bind(result,now(),taskId).run();
-      await writeAudit(env,"public_task_completed",taskId,{assigned_agent:agent});
-      return json({id:taskId,assigned_agent:agent,status:"completed",result,remaining:PUBLIC_TASK_LIMIT-(usage?.n||0)-1},201,headers);
-    } catch(error) {
-      await env.DB.prepare("UPDATE tasks SET status='failed',error=?,updated_at=? WHERE id=?").bind(error.message,now(),taskId).run();
-      await writeAudit(env,"public_task_failed",taskId,{error:error.message});
-      return json({id:taskId,status:"failed",error:error.message},502,headers);
-    }
+    const work = (async () => {
+      try {
+        const result = await runGemini(agent, body.task_type, body.description.trim(), env);
+        await env.DB.prepare("UPDATE tasks SET result=?,status='completed',updated_at=? WHERE id=?").bind(result, now(), taskId).run();
+        await writeAudit(env, "public_task_completed", taskId, { assigned_agent: agent });
+      } catch (error) {
+        await env.DB.prepare("UPDATE tasks SET status='failed',error=?,updated_at=? WHERE id=?").bind(String(error.message || error).slice(0, 500), now(), taskId).run();
+        await writeAudit(env, "public_task_failed", taskId, { error: String(error.message || error).slice(0, 500) });
+      }
+    })();
+    ctx.waitUntil(work);
+    return json({ id: taskId, assigned_agent: agent, status: "in_progress", remaining: PUBLIC_TASK_LIMIT-(usage?.n||0)-1 }, 202, headers);
   }
   if (!env.API_TOKEN || request.headers.get("Authorization") !== "Bearer " + env.API_TOKEN) {
     return json({ error: "Authentication required" }, 401, headers);
@@ -206,5 +214,5 @@ async function handle(request, env) {
   }
   return json({ error: "Route not found" }, 404, headers);
 }
-export default { fetch: handle };
+export default { fetch: (request, env, ctx) => handle(request, env, ctx) };
 export { routeTask, approvalRequired };
