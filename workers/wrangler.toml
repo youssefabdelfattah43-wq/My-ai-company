@@ -5,6 +5,7 @@ compatibility_date = "2026-11-26"
 [vars]
 BUSINESS = "si_natural"
 GEMINI_MODEL = "gemini-3.8-flash"
+ALLOWED_ORIGIN = "https://youssefabdelfattah43-wq.github.io"
 
 [[d1_databases]]
 binding = "DB"
