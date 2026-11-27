@@ -31,3 +31,5 @@ CREATE TABLE IF NOT EXISTS audit_events (
 CREATE INDEX IF NOT EXISTS idx_si_tasks_created ON tasks(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_si_tasks_status ON tasks(status);
 CREATE INDEX IF NOT EXISTS idx_si_approvals_status ON approvals(status);
+CREATE TABLE IF NOT EXISTS public_task_usage (id TEXT PRIMARY KEY, ip_hash TEXT NOT NULL, created_at TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS idx_public_usage_ip_created ON public_task_usage(ip_hash, created_at);
