@@ -1,5 +1,5 @@
 const BUSINESS = "si_natural";
-const PUBLIC_TASK_LIMIT = 4;
+const PUBLIC_TASK_LIMIT = 20;
 const PUBLIC_TASK_WINDOW_MS = 60 * 60 * 1000;
 const APPROVAL_ACTIONS = new Set([
   "campaign_publishing", "budget_changes", "price_changes",
@@ -133,7 +133,7 @@ async function handle(request, env, ctx) {
     const ipHash=Array.from(new Uint8Array(digest)).map(x=>x.toString(16).padStart(2,"0")).join("");
     const since=new Date(Date.now()-PUBLIC_TASK_WINDOW_MS).toISOString();
     const usage=await env.DB.prepare("SELECT COUNT(*) AS n FROM public_task_usage WHERE ip_hash=? AND created_at>?").bind(ipHash,since).first();
-    if((usage?.n||0)>=PUBLIC_TASK_LIMIT)return json({error:"وصلت للحد المؤقت: 4 مهام في الساعة. جرّب بعد ساعة."},429,headers);
+    if((usage?.n||0)>=PUBLIC_TASK_LIMIT)return json({error:"وصلت للحد المؤقت: 20 مهمة في الساعة. جرّب لاحقًا."},429,headers);
     const taskId=id(),stamp=now(),agent=ROUTES[body.task_type];
     await env.DB.prepare("INSERT INTO public_task_usage (id,ip_hash,created_at) VALUES (?,?,?)").bind(id(),ipHash,stamp).run();
     await env.DB.prepare("INSERT INTO tasks (id,business,task_type,description,assigned_agent,status,approval_required,created_at,updated_at) VALUES (?,?,?,?,?,'in_progress',0,?,?)").bind(taskId,BUSINESS,body.task_type,body.description.trim(),agent,stamp,stamp).run();
