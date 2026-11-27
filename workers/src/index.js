@@ -89,8 +89,7 @@ async function runGemini(agent, taskType, description, env) {
   }
   if (lastNetworkError) throw new Error("AI provider request timed out or failed: " + String(lastNetworkError.message || lastNetworkError).slice(0, 250));
   if (!response.ok) { const providerMessage = String(data.error?.message || data.error?.status || "No provider detail").slice(0, 400); throw new Error("AI provider request failed (" + response.status + "): " + providerMessage); }
-  const text = data.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("
-").trim();
+  const text = data.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("\n").trim();
   if (!text) throw new Error("AI provider returned no text");
   return text;
 }
